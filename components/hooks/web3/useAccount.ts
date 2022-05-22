@@ -4,6 +4,8 @@ import useSWR from "swr";
 
 type useAccountResponse = {
   connect: () => void;
+  isLoading: boolean | undefined;
+  isInstalled: boolean;
 };
 type AccountHookFactory = CryptoHookFactory<string, useAccountResponse>;
 
@@ -13,10 +15,11 @@ export type UseAccountHook = ReturnType<AccountHookFactory>;
 // deps -> provider,ethereum, contract(web3State)
 // dependencies -> params
 export const hookFactory: AccountHookFactory =
-  ({ provider, ethereum }) =>
+  ({ provider, ethereum, isLoading }) =>
   () => {
     //   CONDITIONAL USESWR CALL
-    const swrRes = useSWR(
+    // isValidation is true whenever you are retrievnig a new data
+    const { data, mutate, isValidating, ...swr } = useSWR(
       provider ? "web3/useAccount" : null,
       async () => {
         // ! tells that I am sure that provider exists at this point
@@ -30,6 +33,7 @@ export const hookFactory: AccountHookFactory =
       {
         // otherwise when I click on the window, it would run the function again
         revalidateOnFocus: false,
+        shouldRetryOnError: false,
       }
     );
 
@@ -38,11 +42,13 @@ export const hookFactory: AccountHookFactory =
       if (accounts.length === 0) {
         console.log("Please connect to metamask");
         // our old data is not current connected account
-      } else if (accounts[0] !== swrRes.data) {
-        // if account changed we can mutate the data in the hook.
-        swrRes.mutate(accounts[0]);
+      } else if (accounts[0] !== data) {
+        // if account changed we can mutate the data in the hook so we return the updated the data
+        mutate(accounts[0]);
       }
     };
+    // since this does not have a dependency array it will run only once when the component is rendered for the first time only
+    // because we are adding an event listener
     useEffect(() => {
       ethereum?.on("accountsChanged", handleAccountsChanged);
       return () => {
@@ -52,10 +58,22 @@ export const hookFactory: AccountHookFactory =
 
     const connect = async () => {
       try {
+        // ethereum?.request({ method: "eth_requestAccounts" });
         ethereum?.request({ method: "eth_requestAccounts" });
       } catch (error) {
         console.log("error in connecting to wallet", error);
       }
     };
-    return { ...swrRes, connect };
+    return {
+      ...swr,
+      connect,
+      isValidating,
+      data,
+      // when we transition to a new page, hook is reexecuted, and tries to fetch new data, this causes a flashing in ui
+      // isValidation is True when you call the useSwr function, it does not matter whether you have data or not
+      // isLoading: isLoading || isValidating,
+      isLoading: isLoading,
+      isInstalled: ethereum?.isMetaMask || false,
+      mutate,
+    };
   };

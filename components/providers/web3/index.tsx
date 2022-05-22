@@ -14,6 +14,27 @@ import {
   loadContract,
   Web3State,
 } from "./utils";
+import { MetaMaskInpageProvider } from "@metamask/providers";
+import { NftMarketContract } from "@_types/nftMarketContract";
+
+const pageReload = () => window.location.reload();
+
+const handleAccount = (ethereum: MetaMaskInpageProvider) => async () => {
+  const isLocked = !(await ethereum._metamask.isUnlocked());
+  if (isLocked) {
+    pageReload();
+  }
+};
+
+// this has to be set once globally. metamask suggests
+const setGlobalListeners = (ethereum: MetaMaskInpageProvider) => {
+  ethereum.on("chainChanged", pageReload);
+  ethereum.on("accountsChanged", handleAccount(ethereum));
+};
+const removeGlobalListeners = (ethereum: MetaMaskInpageProvider) => {
+  ethereum?.removeListener("chainChanged", pageReload);
+  ethereum?.removeListener("accountsChanged", handleAccount(ethereum));
+};
 
 const Web3Context = createContext<Web3State>(createDefaultState());
 
@@ -26,20 +47,36 @@ const Web3Provider: FunctionComponent<Web3ProviderProps> = ({ children }) => {
 
   useEffect(() => {
     async function initWeb3() {
-      const provider = new ethers.providers.Web3Provider(
-        window.ethereum as any
-      );
-      const contract = await loadContract("NftMarket", provider);
-      setWeb3Api(
-        createWeb3State({
-          ethereum: window.ethereum,
-          provider,
-          contract,
-          isLoading: false,
-        })
-      );
+      try {
+        const provider = new ethers.providers.Web3Provider(
+          // ask here
+          window.ethereum as any
+        );
+
+        setTimeout(() => setGlobalListeners(window.ethereum), 400);
+        const contract = await loadContract("NftMarket", provider);
+        // this is connected account in Metamask
+        const signer = provider.getSigner();
+        // otherwise we would get our nfts
+        const signedContract = contract.connect(signer);
+        setWeb3Api(
+          createWeb3State({
+            ethereum: window.ethereum,
+            provider,
+            // Conversion of type 'Contract' to type 'NftMarketContract' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+            contract: signedContract as unknown as NftMarketContract,
+            isLoading: false,
+          })
+        );
+      } catch (error: any) {
+        console.log("error in provider", error);
+        setWeb3Api((prevState) =>
+          createWeb3State({ ...(prevState as any), isLoading: false })
+        );
+      }
     }
     initWeb3();
+    return () => removeGlobalListeners(window.ethereum);
   }, []);
 
   return (

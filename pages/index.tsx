@@ -1,14 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
-import { useWeb3 } from "@providers/web3";
 import type { NextPage } from "next";
 import { NftList, BaseLayout } from "@ui";
-import nfts from "../content/meta.json";
-import { NftMeta } from "@_types/nft";
 
 const Home: NextPage = () => {
   return (
     <BaseLayout>
-      <h2>dsjdkadjddkjssjk</h2>
       <div className="relative bg-gray-50 pt-16 pb-20 px-4 sm:px-6 lg:pt-24 lg:pb-28 lg:px-8">
         <div className="absolute inset-0">
           <div className="bg-white h-1/3 sm:h-2/3" />
@@ -22,7 +18,8 @@ const Home: NextPage = () => {
               Mint a NFT to get unlimited ownership forever!
             </p>
           </div>
-          <NftList nfts={nfts as NftMeta[]} />
+          {/* <NftList nfts={nfts as NftMeta[]} /> */}
+          <NftList />
         </div>
       </div>
     </BaseLayout>
