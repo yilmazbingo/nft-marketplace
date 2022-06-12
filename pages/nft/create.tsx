@@ -9,6 +9,7 @@ import Link from "next/link";
 import { NftMeta, PinataRes } from "@_types/nft";
 import { useWeb3 } from "@providers/web3";
 import { ethers } from "ethers";
+import { toast } from "react-toastify";
 
 const ALLOWED_FIELDS = ["name", "description", "image", "attributes"];
 
@@ -54,22 +55,30 @@ const NftCreate: NextPage = () => {
 
   const handleAttributeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // first we need to know which attribute we are going to change. we need to know the index of which attribtue we are going to change
+    // attributes is array
     const attributeIndex = nftMeta.attributes.findIndex(
       (attr) => attr.trait_type === name
     );
     nftMeta.attributes[attributeIndex].value = value;
+    // we dont need pass attributes: nftMeta.attributes because we already mutated
     setNftMeta({ ...nftMeta, attributes: nftMeta.attributes });
   };
 
   const uploadMetadata = async () => {
     try {
       const { account, signedData } = await getSignedData();
-      const res = await axios.post("/api/verify", {
+      const promise = axios.post("/api/verify", {
         address: account,
         signature: signedData,
         nft: nftMeta,
       });
-      console.log({ res });
+      // for each case, toastify will show the appropriate error
+      const res = await toast.promise(promise, {
+        pending: "Uploading Metadata",
+        success: "Metadata Uploaded",
+        error: "Metadata upload error",
+      });
       const data = res.data as PinataRes;
       setNftURI(
         `${process.env.NEXT_PUBLIC_PINATA_DOMAIN}/ipfs/${data.IpfsHash}`
@@ -86,19 +95,23 @@ const NftCreate: NextPage = () => {
       return;
     }
     const file = e.target.files[0];
-    console.log("typeof ", typeof file);
     // we need to get the raw bytes
     const buffer = await file.arrayBuffer();
     // each entry of array should contain 8 bits
     const bytes = new Uint8Array(buffer);
     try {
       const { signedData, account } = await getSignedData();
-      const res = await axios.post("/api/verify-image", {
+      const promise = axios.post("/api/verify-image", {
         address: account,
         signature: signedData,
         bytes,
         contentType: file.type,
         fileName: file.name.replace(/\.[^/.]+$/, ""),
+      });
+      const res = await toast.promise(promise, {
+        pending: "Uploading Image",
+        success: "Image Upload",
+        error: "Image upload",
       });
       const data = res.data as PinataRes;
       setNftMeta({
@@ -128,7 +141,11 @@ const NftCreate: NextPage = () => {
           value: ethers.utils.parseEther((0.025).toString()),
         }
       );
-      await tx?.wait();
+      await toast.promise(tx!.wait(), {
+        pending: "Uploading Image",
+        success: "Image Upload",
+        error: "Image upload",
+      });
     } catch (e: any) {
       console.error(e.message);
     }

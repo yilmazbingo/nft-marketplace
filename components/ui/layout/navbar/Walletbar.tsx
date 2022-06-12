@@ -21,6 +21,7 @@ const Walletbar: FunctionComponent<WalletbarProps> = ({
   connect,
   account,
 }) => {
+  console.log("account<", account);
   if (isLoading) {
     return (
       <div>

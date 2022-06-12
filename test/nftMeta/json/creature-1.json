@@ -1,20 +1,19 @@
 {
-  "description": "violet creature. Durable and tanky.",
-  "image": "https://gateway.pinata.cloud/ipfs/QmbiE5ZdZb97C7WuCmbSQ6o7yHn4FRroojwmGDLtevPHC7",
-
-  "name": "Creature 1",
+  "name": "my new nft",
+  "description": "random",
+  "image": "https://gateway.pinata.cloud/ipfs/QmRs3FropRTZv4e6TPd9WsTFDbpHXRhaCuWivNhA2nSBos",
   "attributes": [
     {
       "trait_type": "attack",
-      "value": "40"
+      "value": "12"
     },
     {
       "trait_type": "health",
-      "value": "100"
+      "value": "12"
     },
     {
       "trait_type": "speed",
-      "value": "30"
+      "value": "23"
     }
   ]
 }

@@ -23,6 +23,7 @@ export function withSession(handler: any) {
   return withIronSessionApiRoute(handler, {
     password: process.env.SECRET_COOKIE_PASSWORD as string,
     cookieName: "nft-auth-session",
+    //  Said in another way, the browser will not send a cookie with the secure attribute set over an unencrypted HTTP request
     cookieOptions: {
       secure: process.env.NODE_ENV === "production" ? true : false,
     },

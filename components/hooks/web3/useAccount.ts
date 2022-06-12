@@ -72,7 +72,8 @@ export const hookFactory: AccountHookFactory =
       // when we transition to a new page, hook is reexecuted, and tries to fetch new data, this causes a flashing in ui
       // isValidation is True when you call the useSwr function, it does not matter whether you have data or not
       // isLoading: isLoading || isValidating,
-      isLoading: isLoading,
+      isLoading: isLoading as boolean,
+
       isInstalled: ethereum?.isMetaMask || false,
       mutate,
     };

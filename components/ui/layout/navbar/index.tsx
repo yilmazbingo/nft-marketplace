@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { Fragment } from "react";
-import { Disclosure, Menu, Transition } from "@headlessui/react";
-import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
+import { Disclosure, Menu } from "@headlessui/react";
+import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import Link from "next/link";
 import { ActiveLink } from "../../..";
 import { useAccount, useNetwork } from "@hooks/web3";
@@ -14,7 +14,7 @@ const navigation = [
 ];
 
 function classNames(...classes: string[]) {
-  // filter(Boolean) will pass null values
+  // filter(Boolean) will skip null values
   return classes.filter(Boolean).join(" ");
 }
 
@@ -24,6 +24,7 @@ export default function Navbar() {
   // console.log("account", account);
 
   return (
+    // The button will automatically open/close the panel when clicked, and all components will receive the appropriate aria-* related attributes like aria-expanded and aria-controls.
     <Disclosure as="nav" className="bg-gray-800">
       {({ open }) => (
         <>
